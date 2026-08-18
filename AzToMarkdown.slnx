@@ -1,0 +1,20 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Libraries/">
+    <Project Path="src/AzResourceDetails.Templating/AzResourceDetails.Templating.csproj" />
+    <Project Path="src/Libraries/AzToMarkdown.Core/AzToMarkdown.Core.csproj" />
+  </Folder>
+  <Folder Name="/src/Tools/">
+    <Project Path="src/Tools/AzToMarkdown/AzToMarkdown.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AzResourceDetails.Templating.Tests/AzResourceDetails.Templating.Tests.csproj" />
+    <Project Path="tests/AzToMarkdown.ScenarioTests/AzToMarkdown.ScenarioTests.csproj" />
+    <Project Path="tests/AzToMarkdown.Tests/AzToMarkdown.Tests.csproj" />
+  </Folder>
+</Solution>
