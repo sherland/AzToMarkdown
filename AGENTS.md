@@ -61,7 +61,8 @@ dotnet test tests/AzToMarkdown.ScenarioTests --filter TestCategory=AzureLive
 GitHub Actions runs a Release build plus both offline test projects on Ubuntu and Windows for
 pull requests, pushes to `main`, and manual dispatches. Azure-authenticated `Integration` and
 `AzureLive` scenarios remain explicit local/manual checks because CI has no Azure identity.
-Dependabot opens weekly update pull requests for NuGet packages and GitHub Actions.
+Dependabot opens at most two weekly update pull requests: one grouping all NuGet package updates,
+and one grouping all GitHub Actions updates.
 
 ---
 
