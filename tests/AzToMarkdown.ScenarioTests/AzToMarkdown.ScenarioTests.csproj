@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsTestProject>true</IsTestProject>
+    <AssemblyName>AzToMarkdown.ScenarioTests</AssemblyName>
+    <RootNamespace>AzToMarkdown.ScenarioTests</RootNamespace>
+    <!-- Allow long-running integration tests — each scenario may take up to 2 minutes -->
+    <Timeout>600000</Timeout>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MSTest.TestAdapter" />
+    <PackageReference Include="MSTest.TestFramework" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="coverlet.collector" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Libraries\AzToMarkdown.Core\AzToMarkdown.Core.csproj" />
+  </ItemGroup>
+
+</Project>
