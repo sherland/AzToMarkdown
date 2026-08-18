@@ -1,0 +1,39 @@
+{{-
+  ip_address = model.props.ipaddress
+  fqdn       = model.props.dnssettings ? model.props.dnssettings.fqdn : null
+  extra_fm   = ""
+  if ip_address
+    extra_fm = "ip_address: " + ip_address
+  end
+  if fqdn
+    extra_fm = extra_fm + (extra_fm != "" ? "\n" : "") + "fqdn: " + fqdn
+  end
+-}}
+{{ include '_common_frontmatter.sbn' }}
+# {{ model.name }}
+
+## 🌐 Address
+
+| Property | Value |
+|---|---|
+{{ if ip_address -}}
+| **IP Address** | `{{ ip_address }}` |
+{{ end -}}
+{{ if fqdn -}}
+| **FQDN** | `{{ fqdn }}` |
+{{ end -}}
+{{ if model.props.publicipallocationmethod -}}
+| **Allocation** | `{{ model.props.publicipallocationmethod }}` |
+{{ end -}}
+
+## 🔌 Connections
+
+{{ for edge in model.outbound -}}
+* **{{ edge.label | string.capitalize }}** → {{ edge.wiki }}
+{{ end -}}
+{{ for edge in model.inbound -}}
+* **{{ edge.label | string.capitalize }}** ← {{ edge.wiki }}
+{{ end -}}
+{{ if (array.size model.inbound) == 0 && (array.size model.outbound) == 0 -}}
+*Not currently associated with any resource.*
+{{ end }}

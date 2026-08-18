@@ -1,0 +1,14 @@
+{{-
+  extra_fm = ""
+-}}
+{{ include '_common_frontmatter.sbn' }}
+# {{ model.name }}
+
+## 🌐 DNS Records
+
+{{ for edge in model.outbound | filter_by_label "dns record" -}}
+* {{ edge.wiki }}
+{{ end -}}
+{{ if !(model.outbound | has_label "dns record") -}}
+*No record sets found.*
+{{ end }}

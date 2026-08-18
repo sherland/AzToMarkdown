@@ -1,0 +1,24 @@
+{{-
+  extra_fm = "provisioning_state: " + (model.props.provisioningstate ?? "")
+-}}
+{{ include '_common_frontmatter.sbn' }}
+# {{ model.name }}
+
+## ℹ️ Resource Group Details
+
+| Property | Value |
+|---|---|
+| **Location** | `{{ model.location }}` |
+{{ if model.props.provisioningstate -}}
+| **Provisioning State** | `{{ model.props.provisioningstate }}` |
+{{ end -}}
+
+## 📦 Resources in this Group
+
+{{ if (array.size model.inbound) > 0 -}}
+{{ for edge in model.inbound -}}
+* {{ edge.wiki }}
+{{ end -}}
+{{ else -}}
+*No resource containment relationships are modeled yet — this group's member resources aren't listed here.*
+{{ end }}

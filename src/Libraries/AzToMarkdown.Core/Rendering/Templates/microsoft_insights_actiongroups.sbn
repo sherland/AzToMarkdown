@@ -1,0 +1,67 @@
+{{-
+  short_name = model.props.groupshortname
+  enabled    = model.props.enabled
+  extra_fm   = "group_short_name: " + (short_name ?? "")
+  if enabled != null
+    extra_fm = extra_fm + "\nenabled: " + enabled
+  end
+-}}
+{{ include '_common_frontmatter.sbn' }}
+# {{ model.name }}
+
+## ℹ️ Action Group Details
+
+| Property | Value |
+|---|---|
+{{ if short_name -}}
+| **Short Name** | `{{ short_name }}` |
+{{ end -}}
+{{ if enabled != null -}}
+| **Enabled** | `{{ enabled }}` |
+{{ end -}}
+
+## 📣 Notification Receivers
+
+{{
+  receiver_defs = [
+    {label: "Email",              key: "emailreceivers",            cols: ["Name", "Email Address", "Common Alert Schema", "Status"],       fields: ["name", "emailaddress", "usecommonalertschema", "status"]},
+    {label: "SMS",                key: "smsreceivers",              cols: ["Name", "Country Code", "Phone Number", "Status"],                fields: ["name", "countrycode", "phonenumber", "status"]},
+    {label: "Webhook",            key: "webhookreceivers",          cols: ["Name", "Service URI", "Common Alert Schema"],                     fields: ["name", "serviceuri", "usecommonalertschema"]},
+    {label: "Event Hub",          key: "eventhubreceivers",         cols: ["Name", "Namespace", "Event Hub", "Common Alert Schema"],          fields: ["name", "eventhubnamespace", "eventhubname", "usecommonalertschema"]},
+    {label: "ITSM",               key: "itsmreceivers",             cols: ["Name", "Workspace ID", "Connection ID", "Region"],                fields: ["name", "workspaceid", "connectionid", "region"]},
+    {label: "Azure App Push",     key: "azureapppushreceivers",     cols: ["Name", "Email Address"],                                          fields: ["name", "emailaddress"]},
+    {label: "Automation Runbook", key: "automationrunbookreceivers",cols: ["Name", "Automation Account", "Runbook", "Global Runbook"],        fields: ["name", "automationaccountid", "runbookname", "isglobalrunbook"]},
+    {label: "Voice",              key: "voicereceivers",            cols: ["Name", "Country Code", "Phone Number"],                           fields: ["name", "countrycode", "phonenumber"]},
+    {label: "Logic App",          key: "logicappreceivers",         cols: ["Name", "Resource ID", "Common Alert Schema"],                     fields: ["name", "resourceid", "usecommonalertschema"]},
+    {label: "Azure Function",     key: "azurefunctionreceivers",    cols: ["Name", "Function App", "Function", "Common Alert Schema"],        fields: ["name", "functionappresourceid", "functionname", "usecommonalertschema"]},
+    {label: "ARM Role",           key: "armrolereceivers",          cols: ["Name", "Role ID", "Common Alert Schema"],                         fields: ["name", "roleid", "usecommonalertschema"]}
+  ]
+  any_receivers = false
+-}}
+{{ for def in receiver_defs -}}
+{{
+  arr = model.props[def.key]
+-}}
+{{ if arr && arr.size > 0 -}}
+{{ any_receivers = true -}}
+### {{ def.label }} ({{ arr.size }})
+
+{{
+  tbl_columns = def.cols
+  tbl_rows = []
+  for item in arr
+    row = []
+    for f in def.fields
+      val = item[f]
+      row = array.add row (val == null ? "—" : (val | string.replace "|" "\\|"))
+    end
+    tbl_rows = array.add tbl_rows row
+  end
+-}}
+{{ include '_table.sbn' }}
+
+{{ end -}}
+{{ end -}}
+{{ if !any_receivers -}}
+*No notification receivers configured.*
+{{ end }}

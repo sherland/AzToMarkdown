@@ -1,0 +1,32 @@
+{{-
+  extra_fm = ""
+  if model.version
+    extra_fm = "image: " + model.version
+  end
+-}}
+{{ include '_common_frontmatter.sbn' }}
+# {{ model.name }}
+
+## ℹ️ Configuration
+
+| Property | Value |
+|---|---|
+{{ if model.version -}}
+| **Container Image** | `{{ model.version }}` |
+{{ end -}}
+
+{{ for edge in model.outbound | filter_by_label "managed environment" -}}
+* **Managed Environment:** {{ edge.wiki }}
+{{ end -}}
+{{ for edge in model.outbound | filter_by_labels "vnet integration subnet" "subnet" -}}
+* **Subnet:** {{ edge.wiki }}
+{{ end -}}
+
+## 📦 Container Images
+
+{{ for edge in model.outbound | filter_by_label "container image" -}}
+* {{ edge.wiki }}
+{{ end -}}
+{{ if !(model.outbound | has_label "container image") -}}
+*No container image references resolved.*
+{{ end }}

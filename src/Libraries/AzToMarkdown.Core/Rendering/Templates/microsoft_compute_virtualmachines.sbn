@@ -1,0 +1,57 @@
+{{-
+  vm_size   = model.props.hardwareprofile ? model.props.hardwareprofile.vmsize : null
+  os_type   = model.props.storageprofile ? (model.props.storageprofile.osdisk ? model.props.storageprofile.osdisk.ostype : null) : null
+  image_ref = model.props.storageprofile ? model.props.storageprofile.imagereference : null
+  image     = ""
+  if image_ref
+    image = (image_ref.publisher ?? "") + " " + (image_ref.offer ?? "") + " " + (image_ref.sku ?? "")
+    image = image | string.strip
+  end
+  extra_fm = ""
+  if vm_size
+    extra_fm = "vm_size: " + vm_size
+  end
+  if os_type
+    extra_fm = extra_fm + (extra_fm != "" ? "\n" : "") + "os_type: " + os_type
+  end
+  if image != ""
+    extra_fm = extra_fm + (extra_fm != "" ? "\n" : "") + "image: \"" + image + "\""
+  end
+-}}
+{{ include '_common_frontmatter.sbn' }}
+# {{ model.name }}
+
+## ℹ️ Configuration
+
+| Property | Value |
+|---|---|
+{{ if vm_size -}}
+| **VM Size** | `{{ vm_size }}` |
+{{ end -}}
+{{ if os_type -}}
+| **OS Type** | `{{ os_type }}` |
+{{ end -}}
+{{ if image != "" -}}
+| **Image** | `{{ image }}` |
+{{ end -}}
+
+## 🌐 Network Context
+
+{{ for edge in model.outbound | filter_by_label "network interface" -}}
+* **NIC:** {{ edge.wiki }}
+{{ end -}}
+{{ for edge in model.inbound | filter_by_label "public ip" -}}
+* **Public IP:** {{ edge.wiki }}
+{{ end -}}
+{{ for edge in model.outbound | filter_by_label "subnet" -}}
+* **Subnet:** {{ edge.wiki }}
+{{ end -}}
+
+## 🔌 Extensions
+
+{{ for edge in model.outbound | filter_by_label "extension" -}}
+* {{ edge.wiki }}
+{{ end -}}
+{{ if !(model.outbound | has_label "extension") -}}
+*No extensions.*
+{{ end }}

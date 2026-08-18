@@ -1,0 +1,32 @@
+{{-
+  extra_fm = ""
+-}}
+{{ include '_common_frontmatter.sbn' }}
+# {{ model.name }}
+
+## 🌐 Frontend Endpoints
+
+{{ for edge in model.inbound | filter_by_labels "frontend ip" "a record" -}}
+* {{ edge.wiki }}
+{{ end -}}
+{{ if (model.inbound | filter_by_labels "frontend ip" "a record").size == 0 -}}
+*No frontend entries resolved.*
+{{ end }}
+
+## 🔀 Backend Pools
+
+{{ for edge in model.outbound | filter_by_label "backend" -}}
+* {{ edge.wiki }}
+{{ end -}}
+{{ if !(model.outbound | has_label "backend") -}}
+*No backend targets resolved.*
+{{ end }}
+
+## 🛡️ WAF Policies
+
+{{ for edge in model.outbound | filter_by_label "waf policy" -}}
+* {{ edge.wiki }}
+{{ end -}}
+{{ if !(model.outbound | has_label "waf policy") -}}
+*No WAF policy attached.*
+{{ end }}

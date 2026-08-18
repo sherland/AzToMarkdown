@@ -1,0 +1,161 @@
+{{-
+  sku              = model.sku_name
+  kind             = model.props.kind
+  access_tier      = model.props.accesstier
+  min_tls          = model.props.minimumtlsversion
+  https_only       = model.props.supportshttpstrafficonly
+  extra_fm         = ""
+  if sku
+    extra_fm = "sku: " + sku
+  end
+  if kind
+    extra_fm = extra_fm + (extra_fm != "" ? "\n" : "") + "kind: " + kind
+  end
+  if access_tier
+    extra_fm = extra_fm + (extra_fm != "" ? "\n" : "") + "access_tier: " + access_tier
+  end
+  if min_tls
+    extra_fm = extra_fm + (extra_fm != "" ? "\n" : "") + "minimum_tls_version: " + min_tls
+  end
+  if https_only != null
+    extra_fm = extra_fm + (extra_fm != "" ? "\n" : "") + "https_only: " + https_only
+  end
+-}}
+{{ include '_common_frontmatter.sbn' }}
+# {{ model.name }}
+
+## ℹ️ Configuration
+
+| Property | Value |
+|---|---|
+{{ if sku -}}
+| **SKU** | `{{ sku }}` |
+{{ end -}}
+{{ if kind -}}
+| **Kind** | `{{ kind }}` |
+{{ end -}}
+{{ if access_tier -}}
+| **Access Tier** | `{{ access_tier }}` |
+{{ end -}}
+{{ if model.props.provisioningstate -}}
+| **Provisioning State** | `{{ model.props.provisioningstate }}` |
+{{ end -}}
+{{ if model.props.creationtime -}}
+| **Created** | `{{ model.props.creationtime }}` |
+{{ end -}}
+{{ if model.props.primarylocation -}}
+| **Primary Location** | `{{ model.props.primarylocation }}` |
+{{ end -}}
+{{ if model.props.statusofprimary -}}
+| **Primary Status** | `{{ model.props.statusofprimary }}` |
+{{ end -}}
+
+## 🔌 Endpoints
+
+| Service | URL |
+|---|---|
+{{ pe = model.props.primaryendpoints -}}
+{{ if pe -}}
+{{ if pe.blob }}| **Blob** | `{{ pe.blob }}` |
+{{ end -}}
+{{ if pe.file }}| **File** | `{{ pe.file }}` |
+{{ end -}}
+{{ if pe.queue }}| **Queue** | `{{ pe.queue }}` |
+{{ end -}}
+{{ if pe.table }}| **Table** | `{{ pe.table }}` |
+{{ end -}}
+{{ if pe.dfs }}| **DFS (ADLS Gen2)** | `{{ pe.dfs }}` |
+{{ end -}}
+{{ if pe.web }}| **Static Website** | `{{ pe.web }}` |
+{{ end -}}
+{{ end }}
+
+## 🔐 Security
+
+| Property | Value |
+|---|---|
+{{ if min_tls -}}
+| **Minimum TLS Version** | `{{ min_tls }}` |
+{{ end -}}
+{{ if https_only != null -}}
+| **HTTPS Only** | `{{ https_only }}` |
+{{ end -}}
+{{ if model.props.allowblobpublicaccess != null -}}
+| **Allow Blob Public Access** | `{{ model.props.allowblobpublicaccess }}` |
+{{ end -}}
+{{ if model.props.allowcrosstenantreplication != null -}}
+| **Allow Cross-Tenant Replication** | `{{ model.props.allowcrosstenantreplication }}` |
+{{ end -}}
+{{ if model.props.allowcrosstenantdelegationsas != null -}}
+| **Allow Cross-Tenant SAS Delegation** | `{{ model.props.allowcrosstenantdelegationsas }}` |
+{{ end -}}
+
+## 🌐 Network Rules
+
+{{ acl = model.props.networkacls -}}
+{{ if acl -}}
+| Property | Value |
+|---|---|
+| **Default Action** | `{{ acl.defaultaction }}` |
+{{ if acl.bypass -}}
+| **Bypass** | `{{ acl.bypass }}` |
+{{ end }}
+
+**IP Rules**
+
+{{
+  tbl_columns = ["Value", "Action"]
+  tbl_rows = []
+  for r in (acl.iprules ?? [])
+    tbl_rows = array.add tbl_rows [r.value, (r.action ?? "Allow")]
+  end
+-}}
+{{ include '_table.sbn' }}
+
+**Virtual Network Rules**
+
+{{
+  tbl_columns = ["Subnet", "Action"]
+  tbl_rows = []
+  for r in (acl.virtualnetworkrules ?? [])
+    tbl_rows = array.add tbl_rows [r.id, (r.action ?? "Allow")]
+  end
+-}}
+{{ include '_table.sbn' }}
+{{ else -}}
+*No network ACLs configured.*
+{{ end }}
+
+## 🔑 Encryption
+
+{{ enc = model.props.encryption -}}
+{{ if enc -}}
+{{ if enc.keysource -}}
+**Key Source:** `{{ enc.keysource }}`
+
+{{ end -}}
+| Service | Enabled | Key Type | Last Enabled |
+|---|---|---|---|
+{{ svcs = enc.services -}}
+{{ if svcs -}}
+{{ if svcs.blob }}| **Blob** | `{{ svcs.blob.enabled }}` | `{{ svcs.blob.keytype ?? "—" }}` | `{{ svcs.blob.lastenabledtime ?? "—" }}` |
+{{ end -}}
+{{ if svcs.file }}| **File** | `{{ svcs.file.enabled }}` | `{{ svcs.file.keytype ?? "—" }}` | `{{ svcs.file.lastenabledtime ?? "—" }}` |
+{{ end -}}
+{{ if svcs.queue }}| **Queue** | `{{ svcs.queue.enabled }}` | `{{ svcs.queue.keytype ?? "—" }}` | `{{ svcs.queue.lastenabledtime ?? "—" }}` |
+{{ end -}}
+{{ if svcs.table }}| **Table** | `{{ svcs.table.enabled }}` | `{{ svcs.table.keytype ?? "—" }}` | `{{ svcs.table.lastenabledtime ?? "—" }}` |
+{{ end -}}
+{{ end }}
+{{ else -}}
+*No encryption configuration available.*
+{{ end }}
+
+## 🔒 Private Endpoints
+
+{{ for edge in model.inbound | filter_by_label "private link" -}}
+* {{ edge.wiki }}
+{{ end -}}
+{{ if !(model.inbound | has_label "private link") -}}
+*No private endpoints attached.*
+{{ end }}

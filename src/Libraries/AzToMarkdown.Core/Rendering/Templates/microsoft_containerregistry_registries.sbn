@@ -1,0 +1,42 @@
+{{-
+  sku          = model.props.sku ? model.props.sku.name : null
+  login_server = model.props.loginserver
+  extra_fm     = ""
+  if sku
+    extra_fm = "sku: " + sku
+  end
+  if login_server
+    extra_fm = extra_fm + (extra_fm != "" ? "\n" : "") + "login_server: " + login_server
+  end
+-}}
+{{ include '_common_frontmatter.sbn' }}
+# {{ model.name }}
+
+## ℹ️ Configuration
+
+| Property | Value |
+|---|---|
+{{ if sku -}}
+| **SKU** | `{{ sku }}` |
+{{ end -}}
+{{ if login_server -}}
+| **Login Server** | `{{ login_server }}` |
+{{ end -}}
+
+## 📦 Repositories
+
+{{ for edge in model.outbound | filter_by_label "child resource" -}}
+* {{ edge.wiki }}
+{{ end -}}
+{{ if !(model.outbound | has_label "child resource") -}}
+*No repositories found (may require az acr access).*
+{{ end }}
+
+## 🖥️ Used By (Container Image References)
+
+{{ for edge in model.inbound | filter_by_label "container image" -}}
+* {{ edge.wiki }}
+{{ end -}}
+{{ if !(model.inbound | has_label "container image") -}}
+*No known consumers.*
+{{ end }}

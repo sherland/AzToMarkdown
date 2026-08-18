@@ -1,0 +1,51 @@
+{{-
+  sku   = model.props.sku ? model.props.sku.name : null
+  tier  = model.props.sku ? model.props.sku.tier : null
+  extra_fm = ""
+  if sku
+    extra_fm = "sku: " + sku
+  end
+  if tier
+    extra_fm = extra_fm + (extra_fm != "" ? "\n" : "") + "tier: " + tier
+  end
+-}}
+{{ include '_common_frontmatter.sbn' }}
+# {{ model.name }}
+
+## ℹ️ Configuration
+
+| Property | Value |
+|---|---|
+{{ if sku -}}
+| **SKU** | `{{ sku }}` |
+{{ end -}}
+{{ if tier -}}
+| **Tier** | `{{ tier }}` |
+{{ end -}}
+
+## 🌐 Inbound / Upstream Connections
+
+{{ for edge in model.inbound | filter_by_labels "frontend ip" "public ip" -}}
+* **Public IP:** {{ edge.wiki }}
+{{ end -}}
+{{ for edge in model.inbound | filter_by_labels "a record" "cname" -}}
+* **DNS Mapping:** {{ edge.wiki }}
+{{ end -}}
+
+## 🔀 Outbound / Downstream Targets
+
+{{ for edge in model.outbound | filter_by_label "backend pool" -}}
+* **Backend:** {{ edge.wiki }}
+{{ end -}}
+{{ if !(model.outbound | has_label "backend pool") -}}
+*No backend targets resolved.*
+{{ end }}
+
+## 🛡️ Security & Monitoring
+
+{{ for edge in model.outbound | filter_by_label "waf policy" -}}
+* **WAF Policy:** {{ edge.wiki }}
+{{ end -}}
+{{ if !(model.outbound | has_label "waf policy") -}}
+*No WAF policy attached.*
+{{ end }}

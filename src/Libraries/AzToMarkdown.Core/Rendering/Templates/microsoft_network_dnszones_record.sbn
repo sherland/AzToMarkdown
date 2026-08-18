@@ -1,0 +1,20 @@
+{{-
+  extra_fm = ""
+-}}
+{{ include '_common_frontmatter.sbn' }}
+# {{ model.name }}
+
+## 🎯 Resolves To
+
+{{ for edge in model.outbound | filter_by_labels "a record" "cname" -}}
+* **{{ edge.label | string.upcase }}** → {{ edge.wiki }}
+{{ end -}}
+{{ if (model.outbound | filter_by_labels "a record" "cname").size == 0 -}}
+*Target not resolved to a known Azure resource.*
+{{ end }}
+
+## 🔌 Parent Zone
+
+{{ for edge in model.inbound | filter_by_label "dns record" -}}
+* {{ edge.wiki }}
+{{ end -}}

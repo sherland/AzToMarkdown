@@ -1,0 +1,46 @@
+{{-
+  k8s_version  = model.props.kubernetesversion
+  node_count   = ""
+  if model.props.agentpoolprofiles && model.props.agentpoolprofiles.size > 0
+    for pool in model.props.agentpoolprofiles
+      node_count = node_count + (for.first ? "" : " | ") + pool.name + ": " + pool.count
+    end
+  end
+  extra_fm = ""
+  if k8s_version
+    extra_fm = "kubernetes_version: " + k8s_version
+  end
+  if node_count != ""
+    extra_fm = extra_fm + (extra_fm != "" ? "\n" : "") + "node_pools: \"" + node_count + "\""
+  end
+-}}
+{{ include '_common_frontmatter.sbn' }}
+# {{ model.name }}
+
+## ℹ️ Configuration
+
+| Property | Value |
+|---|---|
+{{ if k8s_version -}}
+| **Kubernetes Version** | `{{ k8s_version }}` |
+{{ end -}}
+{{ if model.props.agentpoolprofiles -}}
+{{ for pool in model.props.agentpoolprofiles -}}
+| **Node Pool: {{ pool.name }}** | `{{ pool.vmsize }}` × {{ pool.count }} node(s) |
+{{ end -}}
+{{ end -}}
+
+## 🌐 Network Context
+
+{{ for edge in model.outbound | filter_by_label "node pool subnet" -}}
+* **Node Pool Subnet:** {{ edge.wiki }}
+{{ end -}}
+
+## 📦 Container Images
+
+{{ for edge in model.outbound | filter_by_label "container image" -}}
+* {{ edge.wiki }}
+{{ end -}}
+{{ if !(model.outbound | has_label "container image") -}}
+*No container image references resolved.*
+{{ end }}

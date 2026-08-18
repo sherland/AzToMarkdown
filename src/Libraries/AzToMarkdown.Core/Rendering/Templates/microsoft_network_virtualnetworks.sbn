@@ -1,0 +1,42 @@
+{{-
+  address_prefixes = ""
+  if model.props.addressspace && model.props.addressspace.addressprefixes
+    for prefix in model.props.addressspace.addressprefixes
+      address_prefixes = address_prefixes + (for.first ? "" : ", ") + prefix
+    end
+  end
+  extra_fm = address_prefixes != "" ? "address_space: \"" + address_prefixes + "\"" : ""
+-}}
+{{ include '_common_frontmatter.sbn' }}
+# {{ model.name }}
+
+## 🌐 Address Space
+
+{{ if model.props.addressspace && model.props.addressspace.addressprefixes -}}
+{{ for prefix in model.props.addressspace.addressprefixes -}}
+* `{{ prefix }}`
+{{ end -}}
+{{ else -}}
+*No address space defined.*
+{{ end }}
+
+## 🔌 Subnets
+
+{{ if model.props.subnets -}}
+| Subnet | Address Prefix |
+|---|---|
+{{ for subnet in model.props.subnets -}}
+| **{{ subnet.name }}** | `{{ subnet.properties.addressprefix ?? subnet.properties.addressprefixes }}` |
+{{ end -}}
+{{ else -}}
+*No subnets defined.*
+{{ end }}
+
+## 🖥️ Attached Resources
+
+{{ for edge in model.inbound -}}
+* **{{ edge.label | string.capitalize }}** ← {{ edge.wiki }}
+{{ end -}}
+{{ if (array.size model.inbound) == 0 -}}
+*No resources attached.*
+{{ end }}

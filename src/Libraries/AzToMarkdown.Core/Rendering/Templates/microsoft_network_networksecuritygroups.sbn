@@ -1,0 +1,29 @@
+{{-
+  rule_count = model.props.securityrules ? model.props.securityrules.size : 0
+  extra_fm   = "security_rule_count: " + rule_count
+-}}
+{{ include '_common_frontmatter.sbn' }}
+# {{ model.name }}
+
+## 🛡️ Security Rules ({{ rule_count }} rule(s))
+
+{{ if model.props.securityrules && model.props.securityrules.size > 0 -}}
+| Priority | Name | Direction | Access | Protocol | Port |
+|---|---|---|---|---|---|
+{{ for rule in model.props.securityrules -}}
+{{ if rule.properties -}}
+| {{ rule.properties.priority }} | {{ rule.name }} | {{ rule.properties.direction }} | {{ rule.properties.access }} | {{ rule.properties.protocol }} | {{ rule.properties.destinationportrange ?? "*" }} |
+{{ end -}}
+{{ end -}}
+{{ else -}}
+*No security rules defined.*
+{{ end }}
+
+## 🔌 Attached Resources
+
+{{ for edge in model.inbound -}}
+* **{{ edge.label | string.capitalize }}** ← {{ edge.wiki }}
+{{ end -}}
+{{ if (array.size model.inbound) == 0 -}}
+*Not currently associated with any resource.*
+{{ end }}

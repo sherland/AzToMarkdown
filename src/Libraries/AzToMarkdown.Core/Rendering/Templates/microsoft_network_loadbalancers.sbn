@@ -1,0 +1,27 @@
+{{-
+  sku      = model.props.sku ? model.props.sku.name : null
+  extra_fm = sku ? "sku: " + sku : ""
+-}}
+{{ include '_common_frontmatter.sbn' }}
+# {{ model.name }}
+
+## 🌐 Frontend
+
+| Property | Value |
+|---|---|
+{{ if sku -}}
+| **SKU** | `{{ sku }}` |
+{{ end -}}
+
+{{ for edge in model.outbound | filter_by_label "frontend ip" -}}
+* **Public IP:** {{ edge.wiki }}
+{{ end -}}
+
+## 🔀 Backend Pool
+
+{{ for edge in model.outbound | filter_by_label "backend pool" -}}
+* {{ edge.wiki }}
+{{ end -}}
+{{ if !(model.outbound | has_label "backend pool") -}}
+*No backend targets resolved.*
+{{ end }}

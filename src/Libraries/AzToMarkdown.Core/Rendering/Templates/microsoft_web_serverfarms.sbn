@@ -1,0 +1,50 @@
+{{-
+  sku_name    = model.props.sku ? model.props.sku.name : null
+  sku_tier    = model.props.sku ? model.props.sku.tier : null
+  sku_size    = model.props.sku ? model.props.sku.size : null
+  os          = model.props.reserved ? "Linux" : "Windows"
+  max_workers = model.props.maximumnumberofworkers
+  cur_workers = model.props.numberofworkers
+  extra_fm    = "os: " + os
+  if sku_name
+    extra_fm = "sku_name: " + sku_name + "\n" + extra_fm
+  end
+  if sku_tier
+    extra_fm = extra_fm + "\nsku_tier: " + sku_tier
+  end
+  if max_workers
+    extra_fm = extra_fm + "\nmax_workers: " + max_workers
+  end
+-}}
+{{ include '_common_frontmatter.sbn' }}
+# {{ model.name }}
+
+## ℹ️ Configuration
+
+| Property | Value |
+|---|---|
+{{ if sku_name -}}
+| **SKU Name** | `{{ sku_name }}` |
+{{ end -}}
+{{ if sku_tier -}}
+| **SKU Tier** | `{{ sku_tier }}` |
+{{ end -}}
+{{ if sku_size -}}
+| **SKU Size** | `{{ sku_size }}` |
+{{ end -}}
+| **OS** | `{{ os }}` |
+{{ if max_workers -}}
+| **Max Workers** | `{{ max_workers }}` |
+{{ end -}}
+{{ if cur_workers -}}
+| **Current Workers** | `{{ cur_workers }}` |
+{{ end -}}
+
+## 🖥️ Hosted Apps
+
+{{ for edge in model.inbound | filter_by_label "app service plan" -}}
+* {{ edge.wiki }}
+{{ end -}}
+{{ if !(model.inbound | has_label "app service plan") -}}
+*No apps hosted on this plan.*
+{{ end }}

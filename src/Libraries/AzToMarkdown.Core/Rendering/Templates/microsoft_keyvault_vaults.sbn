@@ -1,0 +1,41 @@
+{{-
+  sku_family      = model.props.sku ? model.props.sku.family : null
+  vault_uri       = model.props.vaulturi
+  soft_delete     = model.props.enablesoftdelete
+  purge_prot      = model.props.enablepurgeprotection
+  extra_fm        = ""
+  if sku_family
+    extra_fm = "sku_family: " + sku_family
+  end
+  if vault_uri
+    extra_fm = extra_fm + (extra_fm != "" ? "\n" : "") + "vault_uri: " + vault_uri
+  end
+-}}
+{{ include '_common_frontmatter.sbn' }}
+# {{ model.name }}
+
+## ℹ️ Configuration
+
+| Property | Value |
+|---|---|
+{{ if sku_family -}}
+| **SKU Family** | `{{ sku_family }}` |
+{{ end -}}
+{{ if vault_uri -}}
+| **Vault URI** | `{{ vault_uri }}` |
+{{ end -}}
+{{ if soft_delete != null -}}
+| **Soft Delete** | `{{ soft_delete }}` |
+{{ end -}}
+{{ if purge_prot != null -}}
+| **Purge Protection** | `{{ purge_prot }}` |
+{{ end -}}
+
+## 🔒 Private Endpoints
+
+{{ for edge in model.inbound | filter_by_label "private link" -}}
+* {{ edge.wiki }}
+{{ end -}}
+{{ if !(model.inbound | has_label "private link") -}}
+*No private endpoints attached.*
+{{ end }}

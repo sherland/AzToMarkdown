@@ -1,0 +1,24 @@
+{{-
+  extra_fm = "provisioning_state: " + (model.props.provisioningstate ?? "")
+-}}
+{{ include '_common_frontmatter.sbn' }}
+# {{ model.name }}
+
+## ℹ️ Network Watcher Details
+
+| Property | Value |
+|---|---|
+| **Location** | `{{ model.location }}` |
+{{ if model.props.provisioningstate -}}
+| **Provisioning State** | `{{ model.props.provisioningstate }}` |
+{{ end -}}
+
+## ⚙️ Running Operations
+
+{{ if model.props.runningoperationids && model.props.runningoperationids.size > 0 -}}
+{{ for op in model.props.runningoperationids -}}
+* `{{ op }}`
+{{ end -}}
+{{ else -}}
+*No running operations.*
+{{ end }}

@@ -1,0 +1,51 @@
+{{-
+  kind        = model.props.kind
+  os          = model.props.reserved ? "Linux" : "Windows"
+  hostname    = model.props.defaulthostname
+  runtime     = model.version
+  extra_fm = "kind: " + (kind ?? "")
+  extra_fm = extra_fm + "\nos: " + os
+  extra_fm = extra_fm + "\nhostname: " + (hostname ?? "")
+  if runtime
+    extra_fm = extra_fm + "\nruntime: " + runtime
+  end
+-}}
+{{ include '_common_frontmatter.sbn' }}
+# {{ model.name }}
+
+## ℹ️ Configuration
+
+| Property | Value |
+|---|---|
+| **Kind** | `{{ kind ?? "app" }}` |
+| **OS** | `{{ os }}` |
+{{ if hostname -}}
+| **Hostname** | `{{ hostname }}` |
+{{ end -}}
+{{ if runtime != "" -}}
+| **Runtime** | `{{ runtime }}` |
+{{ end -}}
+
+## 🌐 Network Context
+
+{{ for edge in model.outbound | filter_by_label "app service plan" -}}
+* **App Service Plan:** {{ edge.wiki }}
+{{ end -}}
+{{ for edge in model.outbound | filter_by_label "vnet integration subnet" -}}
+* **VNet Integration Subnet:** {{ edge.wiki }}
+{{ end -}}
+{{ if !(model.outbound | has_label "app service plan") && !(model.outbound | has_label "vnet integration subnet") -}}
+*No network associations found.*
+{{ end }}
+
+{{ for edge in model.outbound | filter_by_label "container image" -}}
+{{ if for.first }}## 📦 Container Images
+{{ end -}}
+* {{ edge.wiki }}
+{{ end }}
+
+{{ for edge in model.outbound | filter_by_label "child resource" -}}
+{{ if for.first }}## 🔀 Deployment Slots
+{{ end -}}
+* {{ edge.wiki }}
+{{ end }}

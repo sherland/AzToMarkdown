@@ -1,0 +1,12 @@
+{{-
+  tbl_empty = tbl_empty ?? "*None defined.*"
+-}}
+{{ if tbl_rows && tbl_rows.size > 0 -}}
+| {{ tbl_columns | array.join " | " }} |
+|{{ for c in tbl_columns }} --- |{{ end }}
+{{ for row in tbl_rows -}}
+| {{ row | array.join " | " }} |
+{{ end -}}
+{{ else -}}
+{{ tbl_empty }}
+{{ end -}}

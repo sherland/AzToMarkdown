@@ -1,0 +1,33 @@
+{{-
+  hostname = model.props.hostname
+  state    = model.props.enabledstate
+  extra_fm = ""
+  if hostname
+    extra_fm = "hostname: " + hostname
+  end
+  if state
+    extra_fm = extra_fm + (extra_fm != "" ? "\n" : "") + "state: " + state
+  end
+-}}
+{{ include '_common_frontmatter.sbn' }}
+# {{ model.name }}
+
+## ℹ️ Configuration
+
+| Property | Value |
+|---|---|
+{{ if hostname -}}
+| **Hostname** | `{{ hostname }}` |
+{{ end -}}
+{{ if state -}}
+| **State** | `{{ state }}` |
+{{ end -}}
+
+## 🔌 Connections
+
+{{ for edge in model.inbound | filter_by_label "child resource" -}}
+* **AFD Profile:** {{ edge.wiki }}
+{{ end -}}
+{{ for edge in model.outbound | filter_by_label "child resource" -}}
+* **Child:** {{ edge.wiki }}
+{{ end -}}

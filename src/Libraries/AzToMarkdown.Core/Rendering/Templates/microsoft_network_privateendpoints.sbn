@@ -1,0 +1,20 @@
+{{-
+  extra_fm = ""
+-}}
+{{ include '_common_frontmatter.sbn' }}
+# {{ model.name }}
+
+## 🔒 Private Link Target
+
+{{ for edge in model.outbound | filter_by_label "private link" -}}
+* {{ edge.wiki }}
+{{ end -}}
+{{ if !(model.outbound | has_label "private link") -}}
+*No private link target resolved.*
+{{ end }}
+
+## 🌐 Network Context
+
+{{ for edge in model.outbound | filter_by_label "subnet" -}}
+* **Subnet:** {{ edge.wiki }}
+{{ end -}}

@@ -1,0 +1,14 @@
+{{ if (array.size model.tags) > 0 -}}
+## 🏷️ Tags
+
+{{ for tag in model.tags -}}
+* **{{ tag.key }}:** `{{ tag.value }}`
+{{ end }}
+{{ end -}}
+{{ if (array.size model.role_assignments) > 0 -}}
+## 🔑 Role Assignments
+
+{{ for ra in model.role_assignments -}}
+* **{{ ra.role }}:** `{{ ra.principal_id }}`
+{{ end }}
+{{ end -}}
