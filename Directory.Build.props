@@ -1,0 +1,14 @@
+<Project>
+  <PropertyGroup>
+    <!-- Makes .editorconfig severities (e.g. IDE0005 = error) actually gate dotnet build,
+         not just the IDE / dotnet format. Rules below "error" severity still just show as
+         build warnings, same as today. -->
+    <!-- Byte-identical synchronized tests retain their source repository's analyzer policy. -->
+    <EnforceCodeStyleInBuild Condition="'$(MSBuildProjectName)' != 'AzResourceDetails.Templating.Tests'">true</EnforceCodeStyleInBuild>
+    <!-- IDE0005 (unused usings) only runs on build when GenerateDocumentationFile is on
+         (https://github.com/dotnet/roslyn/issues/41640). That alone would also warn CS1591
+         on every undocumented public member, so suppress just that one warning. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+</Project>
