@@ -492,6 +492,11 @@ flowchart TB
 | `Integration` | ScenarioTests | `az login` | Representative `AzCliQueryClient` calls emit correct OTel spans. |
 | `AzureLive` | ScenarioTests | `az login` + write | Full **create → run AzToMarkdown → assert value-level lossless parity → offline-reproduce via `VaultQueryClient` → delete** cycle against real resources. |
 
+`.github/workflows/ci.yml` builds the complete solution in Release mode and runs the full
+`AzResourceDetails.Templating.Tests` and `AzToMarkdown.Tests` projects on both Ubuntu and Windows.
+It intentionally does not run `Integration` or `AzureLive`: those categories require an authenticated
+Azure CLI session, and the live suite also needs permission to create and delete a resource group.
+
 Highlights:
 
 - **Round-trip / consumer validation** — every property `RelationshipExtractor` consumes is proven
