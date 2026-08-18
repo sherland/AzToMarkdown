@@ -1,0 +1,33 @@
+{
+    "apiVersion": "2024-10-01-preview",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/Built-in-Service-Health/providers/Microsoft.Insights/actiongroups/Action-Service-Health",
+    "name": "Action-Service-Health",
+    "type": "microsoft.insights/actiongroups",
+    "location": "global",
+    "tags": {
+        "ManagedBy": "Automation",
+        "Service": "ServiceHealth"
+    },
+    "properties": {
+        "groupShortName": "SH",
+        "enabled": true,
+        "emailReceivers": [
+            {
+                "name": "PrimaryEmail",
+                "emailAddress": "alerts@example.com",
+                "useCommonAlertSchema": true,
+                "status": "Enabled"
+            }
+        ],
+        "smsReceivers": [],
+        "webhookReceivers": [],
+        "eventHubReceivers": [],
+        "itsmReceivers": [],
+        "azureAppPushReceivers": [],
+        "automationRunbookReceivers": [],
+        "voiceReceivers": [],
+        "logicAppReceivers": [],
+        "azureFunctionReceivers": [],
+        "armRoleReceivers": []
+    }
+}

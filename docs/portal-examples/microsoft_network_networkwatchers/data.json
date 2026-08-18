@@ -1,0 +1,12 @@
+{
+    "apiVersion": "2025-07-01",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/NetworkWatcherRG/providers/Microsoft.Network/networkWatchers/NetworkWatcher_westeurope",
+    "name": "NetworkWatcher_westeurope",
+    "type": "microsoft.network/networkwatchers",
+    "location": "westeurope",
+    "properties": {
+        "provisioningState": "Succeeded",
+        "runningOperationIds": []
+    },
+    "etag": "W/\"2ddab027-7e99-4e5e-aec5-1eefe4c47341\""
+}

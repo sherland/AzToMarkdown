@@ -1,4 +1,4 @@
-# AzToMarkdown – Copilot Instructions
+# AzToMarkdown – Repository Instructions
 
 **AzToMarkdown** is a .NET 10 tool-suite built around a CLI that queries Azure
 Resource Graph (ARG) and maps an entire Azure tenant topology into an Obsidian-compatible Markdown
@@ -10,17 +10,20 @@ vault with lossless YAML front-matter.
 
 ```
 AzToMarkdown.slnx                       ← VS solution
-Directory.Packages.props                    ← Central Package Management
+Directory.Packages.props                ← Central packages for AzToMarkdown-owned projects
 src/
-  Libraries/
   AzResourceDetails.Templating/         ← Synchronized portal-compatible template runtime
+  Libraries/
     AzToMarkdown.Core/                  ← Class library (tenant graph + vault logic)
   Tools/
-    AzToMarkdown/                            ← CLI over Core (outputs to a "vault" folder)
+    AzToMarkdown/                       ← CLI over Core (outputs to a "vault" folder)
 tests/
-  AzResourceDetails.Templating.Tests/  ← Synchronized runtime unit tests
+  AzResourceDetails.Templating.Tests/   ← Synchronized runtime unit tests
   AzToMarkdown.Tests/                   ← MSTest — vault serializer/writer/reader unit tests
   AzToMarkdown.ScenarioTests/           ← MSTest integration — az-login-backed live tests + tracing
+config/azure-locations.json              ← Synchronized Azure-region reference data
+scripts/Sync-AzResourceDetailsTemplating.ps1
+                                        ← Copies/checks the authoritative sibling project
 ```
 
 ---
@@ -46,6 +49,7 @@ dotnet test tests/AzToMarkdown.ScenarioTests --filter TestCategory=Integration
 # AzureLive test (creates + deletes real low-cost resources in westeurope by default; needs az login
 # WITH resource-group write permission — skips as Inconclusive otherwise):
 dotnet test tests/AzToMarkdown.ScenarioTests --filter TestCategory=AzureLive
+# Set AZTOMARKDOWN_LIVE_LOCATION to override westeurope when subscription policy requires another region.
 
 # NOTE: MSTest filter uses TestCategory= (not Category=)
 # NOTE: After Core changes use --no-incremental to avoid stale incremental DLLs:
@@ -55,6 +59,13 @@ dotnet test tests/AzToMarkdown.ScenarioTests --filter TestCategory=AzureLive
 ---
 
 ## Project Details
+
+### AzResourceDetails.Templating  (synchronized library)
+
+Portal-compatible Scriban model construction, formatting functions, friendly labels, SKU/version
+helpers, and runtime contract shared with `AzResourceDetailsDownloader`. Its complete source project,
+test project, and region data are byte-identical mirrors; see **Shared template runtime ownership**
+below before changing anything in those paths.
 
 ### AzToMarkdown.Core  (library)
 
@@ -79,7 +90,7 @@ Markdown vault. Defaults output to a `vault` folder in the current directory.
 Fetch → build graph → write vault, in three steps (`Program.cs`):
 1. `TenantEnumerator.FetchAllAsync()` — three bulk ARG queries across all (or one) subscription, plus ACR repository enumeration.
 2. `RelationshipExtractor.Build(nodes)` — pure in-memory graph construction, no I/O.
-3. `VaultWriter.WriteAll(graph, subNames, outputPath)` — one `.md` file per resource.
+3. `VaultWriter.WriteAll(graph, subNames, outputPath)` — one `.md` file per rendered resource; role-assignment nodes are embedded in scoped resource files or `_role_assignments.md`.
 
 #### Vault schema v1 (lossless master data)
 
@@ -88,7 +99,7 @@ Every generated `.md` file carries machine-generated YAML front-matter (never Sc
 - `schema_version: 1` + `aztomarkdown_version` — readers must reject higher schema versions.
 - Obsidian-friendly flat keys (`id`, `name`, `type`, `resource-group`, `location`, `version`, per-type extras like `sku`/`fqdn` contributed by templates via `extra_fm`).
 - `resource:` — canonical identity (id, name, type, subscription_id/name, resource_group, location).
-- `azure_metadata:` — the **complete, byte-faithful ARG `properties` bag**, `tags`, and optional top-level `kind`, `sku`, and `identity`. Strings are always double-quoted; numbers are raw-text plain scalars — round-trip typing is unambiguous.
+- `azure_metadata:` — the complete, value-faithful ARG `properties` bag, `tags`, and optional top-level `kind`, `sku`, and `identity`. Strings are always double-quoted; numbers retain their raw JSON text as plain scalars, so round-trip typing is unambiguous.
 - `relationships:` — normalized graph edges `{id, name?, type?, direction, label}`.
 - `role_assignments:` — lossless embedded assignments; subscription/RG-scoped ones land in `_role_assignments.md`.
 - `_summary.md` front-matter carries the `subscriptions:` id→name map (needed for offline consumption).
@@ -185,6 +196,7 @@ dotnet test tests/AzToMarkdown.ScenarioTests --filter TestCategory=AzureLive --l
 | `azure_resource_graph query` | `RunQueryAsync` | `db.system=azure_resource_graph`, `db.query.text` (≤1 000 chars), `az.result.count` |
 | `az resource show` | `GetResourceByIdAsync` | `http.request.method=GET`, `az.resource.id`, `http.response.status_code` |
 | `az rest GET` | `GetResourceByIdAsync(useRestPath:true)` | `url.full`, `http.response.status_code` |
+| `az rest batch GET` | `BatchArmGetAsync` | `az.batch.request_count`, `http.response.status_code` |
 | `az aks command invoke` | `RunAksCommandAsync` | `az.aks.resource_group`, `az.aks.cluster_name`, `az.aks.command` |
 | `az acr repository list` | `ListAcrRepositoriesAsync` | `az.acr.registry_name`, `az.subscription.id`, `az.result.count` |
 | `az account list` | `FetchSubscriptionNamesAsync` | `az.account.count` |
