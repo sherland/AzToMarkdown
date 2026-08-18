@@ -11,6 +11,7 @@ vault with lossless YAML front-matter.
 ```
 AzToMarkdown.slnx                       ← VS solution
 Directory.Packages.props                ← Central packages for AzToMarkdown-owned projects
+.github/workflows/ci.yml                ← Cross-platform build and offline-test CI
 src/
   AzResourceDetails.Templating/         ← Synchronized portal-compatible template runtime
   Libraries/
@@ -55,6 +56,10 @@ dotnet test tests/AzToMarkdown.ScenarioTests --filter TestCategory=AzureLive
 # NOTE: After Core changes use --no-incremental to avoid stale incremental DLLs:
 #       dotnet build AzToMarkdown.slnx --no-incremental
 ```
+
+GitHub Actions runs a Release build plus both offline test projects on Ubuntu and Windows for
+pull requests, pushes to `main`, and manual dispatches. Azure-authenticated `Integration` and
+`AzureLive` scenarios remain explicit local/manual checks because CI has no Azure identity.
 
 ---
 
