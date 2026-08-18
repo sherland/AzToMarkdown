@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <!--
+    Deliberately dependency-free beyond Scriban and System.Text.Json (implicit in the shared
+    framework) — no Azure SDK, no Playwright, no repository-relative file paths, no reference back
+    to AzResourceDetailsDownloader.Core/Infrastructure. This is the reusable half of the templating
+    stack: given an ARM resource's JsonElement, build the Scriban `model` object a generated
+    template renders against, and register the handful of custom Scriban functions those templates
+    call. Field/portal-capture discovery (FieldRecipeResolver, PortalFieldKnowledge) and anything
+    that touches a real Azure API or the filesystem stays in AzResourceDetailsDownloader.Core —
+    this project only needs to be handed a JsonElement, never told where it came from or where to
+    look anything up on disk. That's also what keeps it eligible for NuGet packaging later without
+    the repo-layout assumptions a downloader-specific project would carry.
+
+    RegionDisplayNames ships a default region-code -> display-name table baked in at build time
+    (below) rather than reading any file at RUNTIME — region display names are near-permanent
+    reference data (see RegionDisplayNames' own class comment), so embedding a snapshot gives every
+    consumer correct behavior out of the box. RegionDisplayNames.Configure remains available for a
+    host that wants to override it entirely, e.g. with a fresher fetch.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Scriban" Version="7.2.6" />
+  </ItemGroup>
+
+  <!-- Embeds AzResourceDetailsDownloader's own fetched region-name reference data (see
+       fetch-azure-reference-data.ps1) directly from its one canonical location — not a duplicated
+       copy — so refreshing that file and rebuilding this project is all it takes to update the
+       embedded default; there's nothing else to keep in sync. LogicalName is set explicitly so the
+       lookup name in RegionDisplayNames.LoadEmbeddedDefault can never silently drift from the SDK's
+       own (undocumented, Link-based) default naming convention. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\config\azure-locations.json"
+                       LogicalName="AzResourceDetails.Templating.azure-locations.json" />
+  </ItemGroup>
+
+  <!-- Package-friendly metadata, kept ready for a future `dotnet pack` even though nothing is
+       published yet — see AGENT.md for the extraction rationale and the NuGet-vs-submodule
+       decision this was weighed against. -->
+  <PropertyGroup>
+    <PackageId>AzResourceDetails.Templating</PackageId>
+    <Description>Reusable Scriban template-runtime contract (model builder + template functions) for rendering Azure resource Essentials-style templates. Deterministic, no Azure SDK or filesystem dependency.</Description>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+</Project>
