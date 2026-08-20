@@ -53,7 +53,7 @@ public sealed class VaultWriter
         var vaultPaths = BuildVaultPaths(graph, subscriptionNames);
 
         // Track per-type statistics (count + template) AND the sorted node list.
-        var typeStats = new Dictionary<string, (string Template, int Count)>(StringComparer.OrdinalIgnoreCase);
+        var typeStats = new Dictionary<string, (string Template, bool IsPortal, int Count)>(StringComparer.OrdinalIgnoreCase);
         var typeNodes = new Dictionary<string, List<(TenantNode Node, string VaultPath)>>(StringComparer.OrdinalIgnoreCase);
 
         int written = 0;
@@ -76,10 +76,11 @@ public sealed class VaultWriter
             // Accumulate statistics + per-type node list.
             var canonical = VaultTemplateEngine.NormaliseType(node.Type);
             var tmplKey   = _engine.ResolveTemplateKey(node.Type);
+            var isPortal  = _engine.UsesPortalTemplate(node.Type);
             if (typeStats.TryGetValue(canonical, out var existing))
-                typeStats[canonical] = (existing.Template, existing.Count + 1);
+                typeStats[canonical] = (existing.Template, existing.IsPortal, existing.Count + 1);
             else
-                typeStats[canonical] = (tmplKey, 1);
+                typeStats[canonical] = (tmplKey, isPortal, 1);
 
             if (!typeNodes.TryGetValue(canonical, out var list))
                 typeNodes[canonical] = list = [];
@@ -136,7 +137,7 @@ public sealed class VaultWriter
     private void WriteSummary(
         string                                      outputRoot,
         int                                         totalWritten,
-        Dictionary<string, (string Template, int Count)> typeStats,
+        Dictionary<string, (string Template, bool IsPortal, int Count)> typeStats,
         Dictionary<string, string>                  subscriptionNames)
     {
         var sb = new System.Text.StringBuilder();
@@ -153,11 +154,13 @@ public sealed class VaultWriter
         sb.AppendLine("| Resource Type | Count | Template |");
         sb.AppendLine("|---|---:|---|");
 
-        foreach (var (type, (tmpl, count)) in typeStats
+        foreach (var (type, (tmpl, isPortal, count)) in typeStats
             .OrderByDescending(kv => kv.Value.Count)
             .ThenBy(kv => kv.Key, StringComparer.OrdinalIgnoreCase))
         {
-            var tmplLabel   = tmpl == "_generic" ? "`_generic` (fallback)" : $"`{tmpl}`";
+            var tmplLabel = tmpl == "_generic" ? "`_generic` (fallback)"
+                : isPortal                     ? $"`{tmpl}` (portal fallback)"
+                : $"`{tmpl}`";
             var typeFileKey = VaultTemplateEngine.TypeToKey(type);
             // Standard Markdown link (not WikiLink) so the | in [[...|...]] doesn't break the table
             sb.AppendLine($"| {MdLink(type, $"_summary_{typeFileKey}.md")} | {count:N0} | {tmplLabel} |");

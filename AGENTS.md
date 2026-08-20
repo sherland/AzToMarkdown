@@ -17,6 +17,8 @@ src/
   AzResourceDetails.Templating/         ← Synchronized portal-compatible template runtime
   Libraries/
     AzToMarkdown.Core/                  ← Class library (tenant graph + vault logic)
+      Rendering/Templates/              ← Hand-crafted vault templates (relationships, curation)
+      Rendering/PortalTemplates/        ← Synchronized ARDL fallback templates (see below)
   Tools/
     AzToMarkdown/                       ← CLI over Core (outputs to a "vault" folder)
 tests/
@@ -26,6 +28,7 @@ tests/
 config/azure-locations.json              ← Synchronized Azure-region reference data
 scripts/Sync-AzResourceDetailsTemplating.ps1
                                         ← Copies/checks the authoritative sibling project
+scripts/Sync-PortalTemplates.ps1        ← Copies/checks the ARDL portal-fallback templates
 ```
 
 ---
@@ -153,6 +156,15 @@ PowerShell wrapper (`AzToMarkdown.ps1`) exposes the same options as `-Output`, `
   parity. AzToMarkdown-specific adapters and integration tests outside the mirrored paths remain
   maintained here. If a shared-runtime change is needed while working in this repository, provide
   a concrete implementation prompt for the sibling repository instead of modifying the mirror.
+- **Portal-template fallback tier**: `Rendering/PortalTemplates/` is a one-way mirror of ARDL's
+  `templates/` directory (mechanically-generated Portal-Essentials-style property tables, no
+  relationships), synchronized via `scripts/Sync-PortalTemplates.ps1` (`-Check` for parity).
+  `VaultTemplateEngine.Render` resolves a type in three tiers: hand-crafted
+  `Rendering/Templates/{key}.sbn` first, then `Rendering/PortalTemplates/{key}.sbn`, then
+  `_generic.sbn`. Do not hand-edit files under `PortalTemplates/` — same rule as the shared
+  runtime above: fix quality issues upstream in ARDL and re-sync, or promote a type to a
+  hand-crafted template under `Templates/` (which always takes priority) if it needs
+  vault-specific curation (relationships, wiki links).
 - **No caching**: every run queries Azure live. `TenantEnumerator` issues each query exactly once
   per run, so there is no within-run repeat-query benefit to cache; a query cache would only help
   rapid, repeated re-runs of the whole CLI, which isn't the tool's normal usage pattern.

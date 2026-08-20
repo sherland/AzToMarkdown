@@ -10,15 +10,19 @@ namespace AzToMarkdown.Core.Rendering;
 
 /// <summary>
 /// Renders vault Markdown files using Scriban templates loaded as embedded resources.
-/// Each Azure resource type maps to a <c>.sbn</c> template file under
-/// <c>Rendering/Templates/</c>; unknown types fall back to <c>_generic.sbn</c>.
+/// Each Azure resource type maps to a <c>.sbn</c> template file, resolved in three tiers:
+/// a hand-crafted template under <c>Rendering/Templates/</c> (vault-aware — relationships,
+/// wiki links, curated sections); failing that, a mechanically-generated template mirrored
+/// from AzResourceDetailsDownloader under <c>Rendering/PortalTemplates/</c> (a flat
+/// Portal-Essentials-style property table, no relationships); failing that, <c>_generic.sbn</c>.
 ///
 /// Template naming: <c>microsoft.web/sites</c> → <c>microsoft_web_sites.sbn</c>
 /// (dots and slashes replaced with underscores).
 /// </summary>
 public sealed class VaultTemplateEngine
 {
-    private readonly Dictionary<string, Template> _cache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, Template> _cache       = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, Template> _portalCache = new(StringComparer.OrdinalIgnoreCase);
     private readonly IProgressReporter            _reporter;
     private static readonly EmbeddedLoader        _loader = new();
 
@@ -44,7 +48,7 @@ public sealed class VaultTemplateEngine
         Func<string, string>         wikiLink)
     {
         var key      = TypeToKey(node.Type);
-        var template = GetTemplate(key) ?? GetTemplate("_generic")!;
+        var template = GetTemplate(key) ?? GetPortalTemplate(key) ?? GetTemplate("_generic")!;
 
         var globals = BuildScriptObject(node, inbound, outbound, roleAssignments, wikiLink);
 
@@ -144,18 +148,27 @@ public sealed class VaultTemplateEngine
     // Template loading
     // ─────────────────────────────────────────────────────────────────────────
 
-    private Template? GetTemplate(string key)
-    {
-        if (_cache.TryGetValue(key, out var cached)) return cached;
+    private Template? GetTemplate(string key) => GetEmbeddedTemplate(_cache, "Templates", key);
 
-        var resourceName = $"AzToMarkdown.Core.Rendering.Templates.{key}.sbn";
+    /// <summary>
+    /// Loads a mechanically-generated fallback template mirrored from
+    /// AzResourceDetailsDownloader (see <c>scripts/Sync-PortalTemplates.ps1</c>). Used only when
+    /// no hand-crafted template exists for the type.
+    /// </summary>
+    private Template? GetPortalTemplate(string key) => GetEmbeddedTemplate(_portalCache, "PortalTemplates", key);
+
+    private static Template? GetEmbeddedTemplate(Dictionary<string, Template> cache, string folder, string key)
+    {
+        if (cache.TryGetValue(key, out var cached)) return cached;
+
+        var resourceName = $"AzToMarkdown.Core.Rendering.{folder}.{key}.sbn";
         var asm          = typeof(VaultTemplateEngine).Assembly;
         using var stream = asm.GetManifestResourceStream(resourceName);
         if (stream is null) return null;
 
         using var reader = new StreamReader(stream);
         var tmpl = Template.Parse(reader.ReadToEnd(), resourceName);
-        _cache[key] = tmpl;
+        cache[key] = tmpl;
         return tmpl;
     }
 
@@ -165,13 +178,26 @@ public sealed class VaultTemplateEngine
         => type.Replace('.', '_').Replace('/', '_').ToLowerInvariant();
 
     /// <summary>
-    /// Returns the template key that will actually be used to render the given resource type.
-    /// If a type-specific template exists, returns its key; otherwise returns <c>"_generic"</c>.
+    /// Returns the template key that will actually be used to render the given resource type:
+    /// a hand-crafted template's key, else a portal-fallback template's key, else
+    /// <c>"_generic"</c>. Use <see cref="UsesPortalTemplate"/> to tell the first two apart.
     /// </summary>
     public string ResolveTemplateKey(string type)
     {
         var key = TypeToKey(type);
-        return GetTemplate(key) is not null ? key : "_generic";
+        if (GetTemplate(key) is not null) return key;
+        if (GetPortalTemplate(key) is not null) return key;
+        return "_generic";
+    }
+
+    /// <summary>
+    /// True when the type has no hand-crafted AzToMd template and would render through the
+    /// mirrored portal-fallback tier instead.
+    /// </summary>
+    public bool UsesPortalTemplate(string type)
+    {
+        var key = TypeToKey(type);
+        return GetTemplate(key) is null && GetPortalTemplate(key) is not null;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
