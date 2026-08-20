@@ -7,9 +7,9 @@ namespace AzToMarkdown.Tests;
 
 /// <summary>
 /// Consumer validation (see docs/metadata-reference.md): every property path
-/// <see cref="RelationshipExtractor"/> reads must be retrievable — value-identical — from the
+/// <see cref="AzToMarkdown.Core.Azure.RelationshipExtractor"/> reads must be retrievable — value-identical — from the
 /// schema-v1 YAML front-matter alone. Each fixture mirrors the ARG payload shape for a resource
-/// type <see cref="RelationshipExtractor"/> has a dedicated edge-extraction case for.
+/// type <see cref="AzToMarkdown.Core.Azure.RelationshipExtractor"/> has a dedicated edge-extraction case for.
 /// </summary>
 [TestClass]
 [TestCategory("Unit")]

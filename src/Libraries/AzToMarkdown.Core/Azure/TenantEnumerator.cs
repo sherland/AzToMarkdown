@@ -84,8 +84,9 @@ public sealed class TenantEnumerator
     /// <c>type</c> as <c>microsoft.resources/subscriptions/resourcegroups</c>; it's rewritten here
     /// to the ARM-canonical <c>Microsoft.Resources/resourceGroups</c> so it matches the casing
     /// <see cref="ElementToNode"/> lowercases to (and what the vault template file-naming
-    /// convention and <see cref="VaultTemplateEngine.NormaliseType"/> both expect). A resource
-    /// group also isn't itself "in" a resource group, so <c>ResourceContainers</c> doesn't
+    /// convention and <see cref="AzToMarkdown.Core.Rendering.VaultTemplateEngine.NormaliseType"/>
+    /// both expect). A resource group also isn't itself "in" a resource group, so
+    /// <c>ResourceContainers</c> doesn't
     /// populate a meaningful <c>resourceGroup</c> column for these rows — set it to the group's
     /// own name so <see cref="ElementToNode"/>'s required-field check passes and vault path
     /// building (which expects a non-empty resource group) works unchanged.

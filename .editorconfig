@@ -199,3 +199,14 @@ end_of_line = crlf
 
 # IDE0040: Add accessibility modifiers
 dotnet_diagnostic.IDE0040.severity = warning
+
+# Warnings promoted to errors — every code currently emitted by a clean build is listed here so
+# new instances fail the build instead of accumulating silently.
+# CS8613: nullability mismatch in an overriding/implementing member's return type
+dotnet_diagnostic.CS8613.severity = error
+# CS1573: XML doc comment is missing a <param> tag for a declared parameter
+dotnet_diagnostic.CS1573.severity = error
+# CS1574: XML doc cref/see reference could not be resolved
+dotnet_diagnostic.CS1574.severity = error
+# MSTEST0032: test assertion is on a compile-time-constant condition
+dotnet_diagnostic.MSTEST0032.severity = error

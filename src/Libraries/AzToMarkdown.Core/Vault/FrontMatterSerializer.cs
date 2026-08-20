@@ -36,6 +36,7 @@ public sealed partial class FrontMatterSerializer
     /// <param name="aztomarkdownVersion">
     ///   Override for deterministic tests; defaults to the Core assembly's informational version.
     /// </param>
+    /// <param name="reporter">Progress sink for non-fatal serialization warnings; defaults to a no-op.</param>
     public FrontMatterSerializer(string? aztomarkdownVersion = null, IProgressReporter? reporter = null)
     {
         _aztomarkdownVersion = aztomarkdownVersion ?? GetAssemblyVersion();
