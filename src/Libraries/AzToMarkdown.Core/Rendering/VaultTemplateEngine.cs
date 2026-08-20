@@ -519,7 +519,7 @@ public sealed class VaultTemplateEngine
             return reader.ReadToEnd();
         }
 
-        public ValueTask<string> LoadAsync(TemplateContext ctx, SourceSpan span, string name)
+        public ValueTask<string?> LoadAsync(TemplateContext ctx, SourceSpan span, string name)
             => new(Load(ctx, span, name));
     }
 }
