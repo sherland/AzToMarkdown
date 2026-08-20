@@ -14,7 +14,6 @@
     extra_fm = extra_fm + (extra_fm != "" ? "\n" : "") + "node_pools: \"" + node_count + "\""
   end
 -}}
-{{ include '_common_frontmatter.sbn' }}
 # {{ model.name }}
 
 ## ℹ️ Configuration

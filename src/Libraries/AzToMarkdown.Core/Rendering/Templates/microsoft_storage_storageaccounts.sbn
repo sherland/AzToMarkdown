@@ -21,7 +21,6 @@
     extra_fm = extra_fm + (extra_fm != "" ? "\n" : "") + "https_only: " + https_only
   end
 -}}
-{{ include '_common_frontmatter.sbn' }}
 # {{ model.name }}
 
 ## ℹ️ Configuration

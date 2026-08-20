@@ -11,7 +11,6 @@
     extra_fm = extra_fm + (extra_fm != "" ? "\n" : "") + "vault_uri: " + vault_uri
   end
 -}}
-{{ include '_common_frontmatter.sbn' }}
 # {{ model.name }}
 
 ## ℹ️ Configuration

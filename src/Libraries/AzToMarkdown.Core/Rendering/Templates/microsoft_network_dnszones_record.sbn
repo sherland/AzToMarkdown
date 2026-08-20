@@ -1,7 +1,6 @@
 {{-
   extra_fm = ""
 -}}
-{{ include '_common_frontmatter.sbn' }}
 # {{ model.name }}
 
 ## 🎯 Resolves To

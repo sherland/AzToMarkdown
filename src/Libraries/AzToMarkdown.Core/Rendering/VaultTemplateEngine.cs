@@ -55,7 +55,7 @@ public sealed class VaultTemplateEngine
             var result = RenderTemplate(template, globals);
             if (template.HasErrors)
                 _reporter.Report($"  [Warn] Template errors for '{node.Name}' ({node.Type}): {string.Join("; ", template.Messages.Select(m => m.Message))}", ProgressLevel.Warn);
-            details = SplitRendered(result);
+            details = new RenderedNote(ExtractExtraFm(globals), result.Replace("\r\n", "\n").TrimStart('\n'));
         }
         catch (Exception ex)
         {
@@ -65,7 +65,8 @@ public sealed class VaultTemplateEngine
             try
             {
                 var generic = GetTemplate("_generic")!;
-                details = SplitRendered(RenderTemplate(generic, globals));
+                var result  = RenderTemplate(generic, globals);
+                details = new RenderedNote(ExtractExtraFm(globals), result.Replace("\r\n", "\n").TrimStart('\n'));
             }
             catch (Exception ex2)
             {
@@ -109,32 +110,23 @@ public sealed class VaultTemplateEngine
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Sentinel extraction (extra_fm flat keys)
+    // extra_fm flat keys
     // ─────────────────────────────────────────────────────────────────────────
 
-    private const string ExtraFmBegin = "%%EXTRA_FM_BEGIN%%";
-    private const string ExtraFmEnd   = "%%EXTRA_FM_END%%";
-
     /// <summary>
-    /// Splits a rendered template into the <c>extra_fm</c> flat keys (between the sentinel
-    /// markers emitted by <c>_common_frontmatter.sbn</c>) and the note body.
+    /// Reads the <c>extra_fm</c> global a template optionally assigned during rendering (e.g.
+    /// <c>{{- extra_fm = "sku: \"" + model.props.sku + "\"" -}}</c>) directly off the render
+    /// context — no per-template include or in-body marker required, so a template that never
+    /// touches <c>extra_fm</c> at all (including one dropped in without AzToMd conventions in
+    /// mind) still renders correctly, just without contributing extra front-matter keys.
     /// </summary>
-    internal static RenderedNote SplitRendered(string rendered)
+    internal static IReadOnlyList<KeyValuePair<string, string>> ExtractExtraFm(ScriptObject globals)
     {
-        rendered = rendered.Replace("\r\n", "\n");
-
-        var begin = rendered.IndexOf(ExtraFmBegin, StringComparison.Ordinal);
-        var end   = rendered.IndexOf(ExtraFmEnd,   StringComparison.Ordinal);
-        if (begin < 0 || end < 0 || end < begin)
-            return new RenderedNote([], rendered.TrimStart('\n'));
-
-        var inner  = rendered[(begin + ExtraFmBegin.Length)..end];
-        var prefix = rendered[..begin];
-        var suffix = rendered[(end + ExtraFmEnd.Length)..];
-        var body   = (prefix.Trim('\n') + suffix).TrimStart('\n');
+        if (globals["extra_fm"] is not string raw || raw.Length == 0)
+            return [];
 
         var keys = new List<KeyValuePair<string, string>>();
-        foreach (var rawLine in inner.Split('\n'))
+        foreach (var rawLine in raw.Replace("\r\n", "\n").Split('\n'))
         {
             var line = rawLine.Trim();
             if (line.Length == 0) continue;
@@ -145,7 +137,7 @@ public sealed class VaultTemplateEngine
             if (key.Length == 0 || value.Length == 0) continue;
             keys.Add(new KeyValuePair<string, string>(key, value));
         }
-        return new RenderedNote(keys, body);
+        return keys;
     }
 
     // ─────────────────────────────────────────────────────────────────────────

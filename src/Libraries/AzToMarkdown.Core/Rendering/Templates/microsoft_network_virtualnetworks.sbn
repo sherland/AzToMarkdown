@@ -7,7 +7,6 @@
   end
   extra_fm = address_prefixes != "" ? "address_space: \"" + address_prefixes + "\"" : ""
 -}}
-{{ include '_common_frontmatter.sbn' }}
 # {{ model.name }}
 
 ## 🌐 Address Space

@@ -9,7 +9,6 @@
     extra_fm = extra_fm + (extra_fm != "" ? "\n" : "") + "tier: " + tier
   end
 -}}
-{{ include '_common_frontmatter.sbn' }}
 # {{ model.name }}
 
 ## ℹ️ Configuration

@@ -6,7 +6,6 @@
     extra_fm = extra_fm + "\nenabled: " + enabled
   end
 -}}
-{{ include '_common_frontmatter.sbn' }}
 # {{ model.name }}
 
 ## ℹ️ Action Group Details

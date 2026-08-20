@@ -2,7 +2,6 @@
   rule_count = model.props.securityrules ? model.props.securityrules.size : 0
   extra_fm   = "security_rule_count: " + rule_count
 -}}
-{{ include '_common_frontmatter.sbn' }}
 # {{ model.name }}
 
 ## 🛡️ Security Rules ({{ rule_count }} rule(s))

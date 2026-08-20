@@ -4,7 +4,6 @@
     extra_fm = "image: " + model.version
   end
 -}}
-{{ include '_common_frontmatter.sbn' }}
 # {{ model.name }}
 
 ## ℹ️ Configuration

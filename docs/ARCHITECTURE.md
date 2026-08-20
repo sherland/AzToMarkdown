@@ -523,9 +523,11 @@ add a nicer body, drop a Scriban template at `Rendering/Templates/{provider}_{ty
 (dots/slashes → underscores); unknown types fall back to `_generic.sbn`. Add a canonical-casing
 entry to `VaultTemplateEngine.NormaliseType` if desired. Resource templates contain only their
 type-specific details: `VaultTemplateEngine` appends `_common_footer.sbn` automatically so tags,
-role assignments, and future shared sections stay consistent. Templates initialize `extra_fm` and include
-`_common_frontmatter.sbn`; the engine extracts any emitted per-type flat keys before returning the
-human-readable body.
+role assignments, and future shared sections stay consistent. To contribute per-type flat
+front-matter keys, a template optionally assigns a Scriban global named `extra_fm` (e.g.
+`{{- extra_fm = "sku: \"" + model.props.sku + "\"" -}}`); the engine reads that variable directly
+off the render context after rendering — no include or in-body marker required — so a template
+that never touches `extra_fm` still renders correctly with no extra keys.
 
 ### Synchronize the shared template runtime
 

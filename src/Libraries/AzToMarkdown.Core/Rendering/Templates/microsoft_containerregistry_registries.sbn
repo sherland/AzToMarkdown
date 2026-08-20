@@ -9,7 +9,6 @@
     extra_fm = extra_fm + (extra_fm != "" ? "\n" : "") + "login_server: " + login_server
   end
 -}}
-{{ include '_common_frontmatter.sbn' }}
 # {{ model.name }}
 
 ## ℹ️ Configuration
