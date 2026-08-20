@@ -1,7 +1,6 @@
 {{-
   extra_fm = "provisioning_state: " + (model.props.provisioningstate ?? "")
 -}}
-{{ include '_common_frontmatter.sbn' }}
 # {{ model.name }}
 
 ## ℹ️ Network Watcher Details

@@ -10,7 +10,6 @@
     extra_fm = extra_fm + "\nruntime: " + runtime
   end
 -}}
-{{ include '_common_frontmatter.sbn' }}
 # {{ model.name }}
 
 ## ℹ️ Configuration

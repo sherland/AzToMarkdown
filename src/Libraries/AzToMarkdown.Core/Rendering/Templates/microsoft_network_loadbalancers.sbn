@@ -2,7 +2,6 @@
   sku      = model.props.sku ? model.props.sku.name : null
   extra_fm = sku ? "sku: " + sku : ""
 -}}
-{{ include '_common_frontmatter.sbn' }}
 # {{ model.name }}
 
 ## 🌐 Frontend
