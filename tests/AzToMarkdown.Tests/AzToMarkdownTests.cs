@@ -356,7 +356,12 @@ public class AzToMarkdownTests
             writer.WriteAll(graph, subNames, dir1);
             writer.WriteAll(graph, subNames, dir2);
 
-            foreach (var file1 in Directory.GetFiles(dir1, "*.md", SearchOption.AllDirectories))
+            // _summary*.md files legitimately embed a live `generated:` UTC timestamp (second
+            // precision) — excluded here since the two WriteAll calls above can straddle a
+            // second boundary under CI load, and that's not the determinism this test targets:
+            // resource-file front matter/body content is what must be stable across runs.
+            foreach (var file1 in Directory.GetFiles(dir1, "*.md", SearchOption.AllDirectories)
+                         .Where(f => !Path.GetFileName(f).StartsWith("_summary", StringComparison.OrdinalIgnoreCase)))
             {
                 var relative = Path.GetRelativePath(dir1, file1);
                 var file2    = Path.Combine(dir2, relative);
