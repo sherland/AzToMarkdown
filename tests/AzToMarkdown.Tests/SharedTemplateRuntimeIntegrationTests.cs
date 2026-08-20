@@ -69,7 +69,8 @@ public sealed class SharedTemplateRuntimeIntegrationTests
             .ToHashSet(StringComparer.Ordinal);
         var unsupported = new List<string>();
 
-        foreach (var templatePath in Directory.EnumerateFiles(FindTemplateDirectory(), "*.sbn"))
+        var directories = new[] { FindTemplateDirectory("Templates"), FindTemplateDirectory("PortalTemplates") };
+        foreach (var templatePath in directories.SelectMany(d => Directory.EnumerateFiles(d, "*.sbn")))
         {
             var text = File.ReadAllText(templatePath);
             foreach (Match match in Regex.Matches(text, @"\bmodel\.([A-Za-z_][A-Za-z0-9_]*)"))
@@ -82,6 +83,26 @@ public sealed class SharedTemplateRuntimeIntegrationTests
 
         Assert.HasCount(0, unsupported,
             "Templates reference fields outside the shared + AzToMd contracts:\n" + string.Join("\n", unsupported));
+    }
+
+    [TestMethod]
+    [DataRow("microsoft.storage/storageaccounts", "microsoft_storage_storageaccounts", false,
+        "## ℹ️ Configuration", DisplayName = "dedicated (also exists in portal tier — dedicated must win)")]
+    [DataRow("microsoft.network/natgateways", "microsoft_network_natgateways", true,
+        "**Resource group**", DisplayName = "portal fallback (no dedicated template)")]
+    [DataRow("microsoft.some.faketype/widgets", "_generic", false,
+        "## 📄 Properties", DisplayName = "generic (neither tier has a template)")]
+    public void ResolveTemplateKey_And_UsesPortalTemplate_AgreeAcrossAllThreeTiers(
+        string type, string expectedKey, bool expectedIsPortal, string expectedBodyMarker)
+    {
+        var engine = new VaultTemplateEngine();
+        var node   = MakeNode(type, "norwayeast");
+
+        Assert.AreEqual(expectedKey, engine.ResolveTemplateKey(type));
+        Assert.AreEqual(expectedIsPortal, engine.UsesPortalTemplate(type));
+
+        var rendered = engine.Render(node, [], [], [], id => $"`{id}`");
+        StringAssert.Contains(rendered.Body, expectedBodyMarker);
     }
 
     private static TenantNode MakeNode(string type, string location, JsonElement sku = default)
@@ -100,16 +121,16 @@ public sealed class SharedTemplateRuntimeIntegrationTests
         };
     }
 
-    private static string FindTemplateDirectory()
+    private static string FindTemplateDirectory(string folderName)
     {
         var current = new DirectoryInfo(AppContext.BaseDirectory);
         while (current is not null)
         {
             var candidate = Path.Combine(current.FullName,
-                "src", "Libraries", "AzToMarkdown.Core", "Rendering", "Templates");
+                "src", "Libraries", "AzToMarkdown.Core", "Rendering", folderName);
             if (Directory.Exists(candidate)) return candidate;
             current = current.Parent;
         }
-        throw new DirectoryNotFoundException("Could not locate AzToMarkdown.Core rendering templates.");
+        throw new DirectoryNotFoundException($"Could not locate AzToMarkdown.Core rendering '{folderName}' directory.");
     }
 }

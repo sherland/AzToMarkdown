@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Rendering\Templates\**\*.sbn" />
+    <EmbeddedResource Include="Rendering\PortalTemplates\**\*.sbn" />
   </ItemGroup>
 
   <ItemGroup>

@@ -838,7 +838,9 @@ public class VaultTemplateEngineTests
     public void Render_Generic_FlattensScalarProperties()
     {
         var engine = new VaultTemplateEngine();
-        var node   = MakeNodeWithProps("/sub/rg/res", "res", "microsoft.cache/redis",
+        // Must be a type with neither a hand-crafted nor a portal-fallback template, or this
+        // would exercise that template instead of _generic.sbn.
+        var node   = MakeNodeWithProps("/sub/rg/res", "res", "microsoft.some.faketype/widgets",
             """{"sslPort":6380,"enableNonSslPort":false,"redisVersion":"6.0"}""");
         var result = RenderFull(engine, node, [], [], [], id => $"[[{id}]]");
 
@@ -853,7 +855,9 @@ public class VaultTemplateEngineTests
     public void Render_Generic_ListsComplexPropertiesWithoutDumpingContent()
     {
         var engine = new VaultTemplateEngine();
-        var node   = MakeNodeWithProps("/sub/rg/res", "res", "microsoft.cache/redis", """
+        // Must be a type with neither a hand-crafted nor a portal-fallback template, or this
+        // would exercise that template instead of _generic.sbn.
+        var node   = MakeNodeWithProps("/sub/rg/res", "res", "microsoft.some.faketype/widgets", """
             {"redisConfiguration": {"maxmemory-policy": "allkeys-lru", "secretKeyThatShouldNotLeak": "should-not-appear-in-body"}}
             """);
         var result = RenderFull(engine, node, [], [], [], id => $"[[{id}]]");
@@ -969,6 +973,50 @@ public class VaultTemplateEngineTests
 
             StringAssert.Contains(content, "Owner",                "Role name must appear in KV file");
             StringAssert.Contains(content, "owner-principal-id",   "Principal ID must appear in KV file");
+        }
+        finally
+        {
+            if (Directory.Exists(outputDir)) Directory.Delete(outputDir, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public void WriteAll_Summary_LabelsPortalFallbackTemplateDistinctlyFromDedicatedAndGeneric()
+    {
+        var engine   = new VaultTemplateEngine();
+        var writer   = new VaultWriter(engine);
+        var graph    = new TenantGraph();
+        var subNames = new Dictionary<string, string> { ["sub-1"] = "my-sub" };
+
+        // Dedicated: has a hand-crafted Rendering/Templates template.
+        var kvId = "/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.KeyVault/vaults/kv1";
+        graph.AddNode(MakeNode(kvId, "kv1", "microsoft.keyvault/vaults"));
+
+        // Portal fallback: only a mirrored ARDL template, no hand-crafted one.
+        var natId = "/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Network/natGateways/nat1";
+        graph.AddNode(MakeNode(natId, "nat1", "microsoft.network/natgateways"));
+
+        // Generic: neither tier has a template for this made-up type.
+        var fakeId = "/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Some.Faketype/widgets/w1";
+        graph.AddNode(MakeNode(fakeId, "w1", "microsoft.some.faketype/widgets"));
+
+        var outputDir = Path.Combine(Path.GetTempPath(), $"vault-summary-{Guid.NewGuid():N}");
+        try
+        {
+            writer.WriteAll(graph, subNames, outputDir);
+
+            var summary = File.ReadAllText(Path.Combine(outputDir, "_summary.md"));
+
+            StringAssert.Contains(summary, "`microsoft_keyvault_vaults`",
+                "Dedicated-template types must show their key with no fallback qualifier");
+            Assert.IsFalse(summary.Contains("microsoft_keyvault_vaults` (portal fallback)"),
+                "A type with a hand-crafted template must not be reported as portal fallback");
+
+            StringAssert.Contains(summary, "`microsoft_network_natgateways` (portal fallback)",
+                "A type with only a mirrored ARDL template must be labeled portal fallback");
+
+            StringAssert.Contains(summary, "`_generic` (fallback)",
+                "A type with neither tier must still show the plain generic fallback label");
         }
         finally
         {

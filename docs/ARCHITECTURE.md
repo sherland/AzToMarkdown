@@ -518,16 +518,30 @@ dotnet test tests/AzToMarkdown.Tests --filter "TestCategory=Unit"
 ## 11. Extension guide
 
 ### Add support for a new resource type in the vault
-Nothing to do for storage — the bulk ARG query already captures the full bag for **every** type. To
-add a nicer body, drop a Scriban template at `Rendering/Templates/{provider}_{type}.sbn`
-(dots/slashes → underscores); unknown types fall back to `_generic.sbn`. Add a canonical-casing
-entry to `VaultTemplateEngine.NormaliseType` if desired. Resource templates contain only their
-type-specific details: `VaultTemplateEngine` appends `_common_footer.sbn` automatically so tags,
-role assignments, and future shared sections stay consistent. To contribute per-type flat
-front-matter keys, a template optionally assigns a Scriban global named `extra_fm` (e.g.
-`{{- extra_fm = "sku: \"" + model.props.sku + "\"" -}}`); the engine reads that variable directly
-off the render context after rendering — no include or in-body marker required — so a template
-that never touches `extra_fm` still renders correctly with no extra keys.
+Nothing to do for storage — the bulk ARG query already captures the full bag for **every** type.
+`VaultTemplateEngine` resolves a template in three tiers, in order: a hand-crafted template at
+`Rendering/Templates/{provider}_{type}.sbn` (dots/slashes → underscores); failing that, a mirrored
+template at `Rendering/PortalTemplates/{provider}_{type}.sbn` (see below); failing that,
+`_generic.sbn`. Add a canonical-casing entry to `VaultTemplateEngine.NormaliseType` if desired.
+Resource templates contain only their type-specific details: `VaultTemplateEngine` appends
+`_common_footer.sbn` automatically so tags, role assignments, and future shared sections stay
+consistent. To contribute per-type flat front-matter keys, a template optionally assigns a Scriban
+global named `extra_fm` (e.g. `{{- extra_fm = "sku: \"" + model.props.sku + "\"" -}}`); the engine
+reads that variable directly off the render context after rendering — no include or in-body marker
+required — so a template that never touches `extra_fm` still renders correctly with no extra keys.
+
+### Portal-fallback tier (`Rendering/PortalTemplates/`)
+A one-way mirror of `AzResourceDetailsDownloader`'s `templates/` directory — mechanically-generated
+Portal-Essentials-style property tables (one per resource type, built by matching Azure Portal field
+labels against a captured example). They carry no relationships/wiki-link section and often contain
+rows that legitimately fall back to "not available" because ARDL's single-resource-capture matching
+can't resolve fields the Portal itself computes by joining across resources. `VaultTemplateEngine`
+uses one only when no hand-crafted template exists for the type, via
+`GetPortalTemplate`/`UsesPortalTemplate`. Never hand-edit files under this directory — the same
+authoritative-source rule as the shared template runtime applies: fix quality issues upstream in
+ARDL and re-sync with `scripts/Sync-PortalTemplates.ps1` (`-Check` to verify byte-for-byte parity),
+or promote the type to a hand-crafted template under `Templates/` (which always wins) if it needs
+vault-specific curation.
 
 ### Synchronize the shared template runtime
 
