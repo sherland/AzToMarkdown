@@ -27,7 +27,7 @@
     host that wants to override it entirely, e.g. with a fresher fetch.
   -->
   <ItemGroup>
-    <PackageReference Include="Scriban" Version="7.2.6" />
+    <PackageReference Include="Scriban" Version="7.4.0" />
   </ItemGroup>
 
   <!-- Embeds AzResourceDetailsDownloader's own fetched region-name reference data (see
